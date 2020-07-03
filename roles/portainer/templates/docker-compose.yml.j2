@@ -1,0 +1,21 @@
+version: '3.7'
+
+services:
+  portainer:
+    image: portainer/portainer
+    restart: on-failure
+    networks:
+     - web
+    volumes:
+     - /var/run/docker.sock:/var/run/docker.sock
+     - ./portainer_data:/data
+    labels:
+     - "traefik.enable=true"
+     - "traefik.http.routers.portainer.rule=Host(`{{ portainer.url }}`)"
+     - "traefik.http.services.portainer.loadbalancer.server.port=9000"
+#     - "traefik.http.routers.portainer.middlewares=auth@file" # This only needs to be set on first launch to avoid having someone create an admin account
+     - "traefik.http.routers.portainer.entrypoints=websecure"
+
+networks:
+    web:
+      external: true

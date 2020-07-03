@@ -1,0 +1,23 @@
+---
+- name: Portainer block
+  become: true
+  become_user: '{{ username }}'
+  tags:
+    - portainer
+  block:
+    - name: create utils/portainer directory
+      file:
+        path: '~{{ username }}/utils/portainer'
+        state: directory
+        mode: '0755'
+
+    - name: write docker-compose.yml for portainer
+      template:
+        src: docker-compose.yml.j2
+        dest: '~{{ username }}/utils/portainer/docker-compose.yml'
+        backup: yes
+        mode: 'u=rw,go=r'
+
+    - name: Run the portainer container
+      docker_compose:
+        project_src: '~{{ username }}/utils/portainer'

@@ -1,0 +1,143 @@
+{% set oh_my_zsh = user.oh_my_zsh|default({}) %}
+
+# Path to your oh-my-zsh installation.
+export ZSH=$HOME/.oh-my-zsh
+
+# Set name of the theme to load --- if set to "random", it will
+# load a random theme each time oh-my-zsh is loaded, in which case,
+# to know which specific one was loaded, run: echo $RANDOM_THEME
+# See https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
+ZSH_THEME="{{ oh_my_zsh.theme | default(oh_my_zsh_theme) }}"
+
+# Set list of themes to pick from when loading at random
+# Setting this variable when ZSH_THEME=random will cause zsh to load
+# a theme from this variable instead of looking in ~/.oh-my-zsh/themes/
+# If set to an empty array, this variable will have no effect.
+# ZSH_THEME_RANDOM_CANDIDATES=( "robbyrussell" "agnoster" )
+
+# Uncomment the following line to use case-sensitive completion.
+# CASE_SENSITIVE="true"
+
+# Uncomment the following line to use hyphen-insensitive completion.
+# Case-sensitive completion must be off. _ and - will be interchangeable.
+# HYPHEN_INSENSITIVE="true"
+
+# Uncomment the following line to disable bi-weekly auto-update checks.
+# DISABLE_AUTO_UPDATE="true"
+
+# Uncomment the following line to automatically update without prompting.
+# DISABLE_UPDATE_PROMPT="true"
+
+# Uncomment the following line to change how often to auto-update (in days).
+# export UPDATE_ZSH_DAYS=13
+
+# Uncomment the following line if pasting URLs and other text is messed up.
+# DISABLE_MAGIC_FUNCTIONS=true
+
+# Uncomment the following line to disable colors in ls.
+# DISABLE_LS_COLORS="true"
+
+# Uncomment the following line to disable auto-setting terminal title.
+# DISABLE_AUTO_TITLE="true"
+
+# Uncomment the following line to enable command auto-correction.
+# ENABLE_CORRECTION="true"
+
+# Uncomment the following line to display red dots whilst waiting for completion.
+# COMPLETION_WAITING_DOTS="true"
+
+# Uncomment the following line if you want to disable marking untracked files
+# under VCS as dirty. This makes repository status check for large repositories
+# much, much faster.
+# DISABLE_UNTRACKED_FILES_DIRTY="true"
+
+# Uncomment the following line if you want to change the command execution time
+# stamp shown in the history command output.
+# You can set one of the optional three formats:
+# "mm/dd/yyyy"|"dd.mm.yyyy"|"yyyy-mm-dd"
+# or set a custom format using the strftime function format specifications,
+# see 'man strftime' for details.
+# HIST_STAMPS="mm/dd/yyyy"
+
+# Would you like to use another custom folder than $ZSH/custom?
+# ZSH_CUSTOM=/path/to/new-custom-folder
+
+# Which plugins would you like to load?
+# Standard plugins can be found in ~/.oh-my-zsh/plugins/*
+# Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
+# Example format: plugins=(rails git textmate ruby lighthouse)
+# Add wisely, as too many plugins slow down shell startup.
+plugins=({{ oh_my_zsh.plugins | default(oh_my_zsh_plugins) | join(' ') }})
+
+source $ZSH/oh-my-zsh.sh
+
+# User configuration
+
+# export MANPATH="/usr/local/man:$MANPATH"
+
+# You may need to manually set your language environment
+# export LANG=en_US.UTF-8
+
+# Preferred editor for local and remote sessions
+# if [[ -n $SSH_CONNECTION ]]; then
+#   export EDITOR='vim'
+# else
+#   export EDITOR='mvim'
+# fi
+
+# Compilation flags
+# export ARCHFLAGS="-arch x86_64"
+
+# Set personal aliases, overriding those provided by oh-my-zsh libs,
+# plugins, and themes. Aliases can be placed here, though oh-my-zsh
+# users are encouraged to define aliases within the ZSH_CUSTOM folder.
+# For a full list of active aliases, run `alias`.
+#
+# Example aliases
+# alias zshconfig="mate ~/.zshrc"
+# alias ohmyzsh="mate ~/.oh-my-zsh"
+
+alias .bc='./bin/console'
+alias dce="docker-compose exec"
+alias dc="docker-compose"
+alias dcr="docker-compose run"
+#alias dcu="docker-compose up -d"
+alias dls="docker container ls"
+alias dps="docker-compose ps"
+alias dcl="docker-compose logs -f --tail=25| ccze -A"
+alias dcla="docker-compose logs -f | ccze -A"
+alias dcd="docker-compose down"
+alias dcebc="docker-compose exec php php bin/console"
+alias dcec="docker-compose exec php composer"
+alias dcdul="dcd && dcu && dcl"
+
+function dcu() {
+    #if there are no arguments we will use the detached mode
+    if [ "$#" -eq 0 ]; then
+      docker-compose up -d
+    fi
+    #If the first argument is an option use it
+    if [ "${1:0:1}" = '-' ]; then
+      docker-compose up "$@"
+    fi
+    #check if the first argument is "prod" if that is the case look for the correct filename and run docker with it
+    if [ "$1" = "prod" ];then
+        FILE=null
+        if [ -f docker-compose-prod.yml ]; then
+          FILE=docker-compose-prod.yml
+        elif [ -f docker-compose-prod.yaml ]; then
+    	  FILE=docker-compose-prod.yaml
+	fi
+	#If a file exists check if options are passed if not run detached
+      	if [ ! -z "$FILE" ]; then
+            echo "$1" "$FILE" "$2"
+            if [ "${2:0:1}" ]; then
+              docker-compose -f "$FILE" up "$2"
+	    else
+	      docker-compose -f "$FILE" up -d
+	   fi
+        else
+          echo "No docker-compose-prod.yml or docker-compose-prod.yaml file found in current directory"
+  	fi
+    fi
+}

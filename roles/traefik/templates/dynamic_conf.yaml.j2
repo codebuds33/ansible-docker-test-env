@@ -1,0 +1,12 @@
+http:
+  middlewares:
+    redirecthttps:
+      redirectScheme:
+        scheme: "https"
+        permanent: true
+
+    auth:
+      basicAuth:
+        users: [
+          "{{ traefik.basic_auth_user }}"
+        ]

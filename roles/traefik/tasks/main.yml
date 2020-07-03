@@ -1,0 +1,63 @@
+---
+- name: Traefik block
+  become: true
+  become_user: '{{ username }}'
+  tags:
+    - traefik
+  block:
+    - name: create utils/traefik config directory
+      file:
+        path: '~{{ username }}/utils/traefik'
+        state: directory
+        mode: '0755'
+
+    - name: Create the acme.json file with the correct permissions
+      file:
+        path: '~{{ username }}/utils/traefik/acme.json'
+        owner: "{{ username }}"
+        group: "{{ username }}"
+        state: touch
+        modification_time: preserve
+        access_time: preserve
+        mode: '0600'
+
+    - name: Create the traefik.yaml and dynamic_conf.yaml files
+      file:
+        path: '~{{ username }}/utils/traefik/{{ item }}'
+        owner: "{{ username }}"
+        group: "{{ username }}"
+        state: touch
+        modification_time: preserve
+        access_time: preserve
+        mode: '0644'
+      loop: ['traefik.yaml', 'dynamic_conf.yaml']
+
+    - name: write docker-compose.yml for traefik
+      template:
+        src: docker-compose.yml.j2
+        dest: '~{{ username }}/utils/traefik/docker-compose.yml'
+        backup: yes
+        mode: 'u=rw,go=r'
+
+    - name: write traefik.yaml for traefik
+      template:
+        src: traefik.yaml.j2
+        dest: '~{{ username }}/utils/traefik/traefik.yaml'
+        backup: yes
+        mode: 'u=rw,go=r'
+
+    - name: write dynamic_conf.yaml for traefik
+      template:
+        src: dynamic_conf.yaml.j2
+        dest: '~{{ username }}/utils/traefik/dynamic_conf.yaml'
+        backup: yes
+        mode: 'u=rw,go=r'
+
+    - name: Create the external web network
+      become_user: root
+      docker_network:
+        name: web
+
+    - name: Run the traefik container
+      docker_compose:
+        project_src: '~{{ username }}/utils/traefik'

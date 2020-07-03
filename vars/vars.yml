@@ -1,0 +1,30 @@
+---
+username: exploit
+oh_my_zsh_theme: tjkirch_mod
+oh_my_zsh_plugins:
+  - git
+traefik:
+  url: "{{ vault_traefik.url }}"
+  basic_auth_user: "{{ vault_traefik.basic_auth_user }}"
+  letsencrypt:
+    email: "{{ vault_traefik.letsencrypt.email }}"
+portainer:
+  url: "{{ vault_portainer.url }}"
+maria:
+  subnet: 172.30.0.0/16
+  version: 10.5
+  develop:
+    ip: 172.30.0.10
+    user: exploit
+    user_password: "{{ vault_maria.develop.user_password }}"
+    root_password: "{{ vault_maria.develop.root_password }}"
+  staging:
+    ip: 172.30.0.20
+    user: exploit
+    user_password: "{{ vault_maria.staging.user_password }}"
+    root_password: "{{ vault_maria.staging.root_password }}"
+  production:
+    ip: 172.30.0.100
+    user: exploit
+    user_password: "{{ vault_maria.production.user_password }}"
+    root_password: "{{ vault_maria.production.root_password }}"

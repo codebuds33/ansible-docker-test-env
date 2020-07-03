@@ -1,0 +1,18 @@
+---
+vault_traefik:
+  url: traefik.dev.com
+  basic_auth_user: User:$usr$pass$word
+  letsencrypt:
+    email: contact@me.com
+vault_portainer:
+  url: portainer.dev.localhost
+vault_maria:
+  develop:
+    user_password: password
+    root_password: password
+  staging:
+    user_password: password
+    root_password: password
+  production:
+    user_password: password
+    root_password: password

@@ -19,5 +19,6 @@
         mode: 'u=rw,go=r'
 
     - name: Run the portainer container
+      become_user: root
       docker_compose:
         project_src: '~{{ username }}/utils/portainer'

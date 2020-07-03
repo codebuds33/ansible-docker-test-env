@@ -115,6 +115,7 @@
       when:
         check_privileges.results[item.key].stdout_lines[7] is not defined or
         check_privileges.results[item.key].stdout_lines[7].find("GRANT ALL PRIVILEGES ON *.* TO ") == -1
+      ignore_errors: True
       with_items:
         - "{{ databases.production }}"
         - "{{ databases.staging }}"

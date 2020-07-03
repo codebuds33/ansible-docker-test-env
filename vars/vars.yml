@@ -3,6 +3,7 @@ username: exploit
 oh_my_zsh_theme: tjkirch_mod
 oh_my_zsh_plugins:
   - git
+banner_var: A variable !!
 traefik:
   url: "{{ vault_traefik.url }}"
   basic_auth_user: "{{ vault_traefik.basic_auth_user }}"

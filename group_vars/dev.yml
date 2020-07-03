@@ -1,6 +1,6 @@
 ---
 vault_traefik:
-  url: traefik.dev.com
+  url: traefik.dev.localhost
   basic_auth_user: User:$usr$pass$word
   letsencrypt:
     email: contact@me.com

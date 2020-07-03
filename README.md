@@ -24,11 +24,13 @@ The default playbook is set to install docker and docker-compose to the dev cont
 
 This playbook makes use of multiple roles :
 - oh-my-zsh: This will install oh-my-zsh and configure the user settings
+- ssh-banner: customize the banner on ssh login and add a variable
 - docker: This will install and run Docker, it also installs docker-compose
 - docker-test: This will run a docker hello world and show the output to make sure Docker runs
 - traefik: This will generate the docker-compose and the configuration files for traefik. It will also create the external `web` network and run the container
 - maria: This will generate the docker-compose for maria and setup the ENV for the develop, staging and production environments
 - portainer: This will generate the docker-compose for portainer, connect to traefik and setup the url
+- reboot: make the server reboot after finishing to apply certain changes (like switching nftables to iptables)
 
 You can test just some of them by using the `-t` option:
 
@@ -85,3 +87,6 @@ To not have to type in the password in dev mode there is a group_vars/dev.yml fi
 
 **After cloning the repo GitHub complains about a published private SSH kay**
 > The public key is juste here to connect to the local docker container it is not used on any real servers
+
+## TODO
+

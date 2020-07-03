@@ -68,7 +68,7 @@
         name: docker
         state: present
 
-    - name: Set exploits user groups and shell
+    - name: Add docker group to user
       user:
         name: "{{ username }}"
         groups: docker

@@ -1,0 +1,16 @@
+---
+- name: Set login banner
+  become: true
+  tags:
+    - ssh-banner
+  block:
+    - name: Copy banner file
+      template:
+        src: banner.j2
+        dest: '/etc/banner'
+        mode: '0644'
+
+    - name: Make sure banner is active in sshd_config
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        line: 'Banner /etc/banner'

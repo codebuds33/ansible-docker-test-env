@@ -97,6 +97,6 @@ To not have to type in the password in dev mode there is a group_vars/dev.yml fi
 - Make sure maria waits before trying to trigger to user rights
 - add more default roles !!
 - Maybe once more OSes are defined add a local host to be able to generate local dev envs rapidly and not just limit this to the testing of servers
-- Anything that come into your mind !
+- Anything that comes into your mind !
  
 

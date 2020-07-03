@@ -88,5 +88,8 @@ To not have to type in the password in dev mode there is a group_vars/dev.yml fi
 **After cloning the repo GitHub complains about a published private SSH kay**
 > The public key is juste here to connect to the local docker container it is not used on any real servers
 
+**I can not see my ssh login banner**
+> In order to have it appear you need to either run `sudo systemctl restart ssh.service` on your server or reboot it
+
 ## TODO
 

@@ -1,0 +1,59 @@
+version: '3.7'
+
+services:
+  production:
+    container_name: maria_production
+    image: mariadb:{{ maria.version }}
+    restart: always
+    env_file:
+     - .env.production
+    volumes:
+     - ./production/conf:/etc/mysql/mariadb.conf.d
+     - ./production/maria:/var/lib/mysql
+     - ./production/dumps:/dumps
+     - ./production/initdb:/initdb
+    networks:
+      maria:
+      static:
+        ipv4_address: {{ maria.production.ip }}
+
+  staging:
+    container_name: maria_staging
+    image: mariadb:{{ maria.version }}
+    restart: always
+    env_file:
+     - .env.staging
+    volumes:
+     - ./staging/conf:/etc/mysql/mariadb.conf.d
+     - ./staging/maria:/var/lib/mysql
+     - ./staging/dumps:/dumps
+    networks:
+      maria:
+      static:
+        ipv4_address: {{ maria.staging.ip }}
+
+  develop:
+    container_name: maria_develop
+    image: mariadb:{{ maria.version }}
+    restart: always
+    env_file:
+     - .env.develop
+    volumes:
+     - ./develop/conf:/etc/mysql/mariadb.conf.d
+     - ./develop/maria:/var/lib/mysql
+     - ./develop/dumps:/dumps
+    networks:
+      maria:
+      static:
+        ipv4_address: {{ maria.develop.ip }}
+
+
+networks:
+  maria:
+    name: maria
+    driver: bridge
+  static:
+    ipam:
+      driver: default
+      config:
+       - subnet: {{ maria.subnet }}

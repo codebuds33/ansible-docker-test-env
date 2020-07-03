@@ -1,0 +1,121 @@
+---
+- name: Maria block
+  become: true
+  become_user: '{{ username }}'
+  tags:
+    - maria
+  vars:
+    databases:
+      production:
+        user: '{{ maria.production.user }}'
+        user_password: '{{ maria.production.user_password }}'
+        root_password: '{{ maria.production.root_password }}'
+        name: 'production'
+        ip: '{{ maria.production.ip }}'
+        key: 0
+      staging:
+        user: '{{ maria.staging.user }}'
+        user_password: '{{ maria.staging.user_password }}'
+        root_password: '{{ maria.staging.root_password }}'
+        name: 'staging'
+        ip: '{{ maria.staging.ip }}'
+        key: 1
+      develop:
+        user: '{{ maria.develop.user }}'
+        user_password: '{{ maria.develop.user_password }}'
+        root_password: '{{ maria.develop.root_password }}'
+        name: 'develop'
+        ip: '{{ maria.develop.ip }}'
+        key: 2
+
+  block:
+    - name: create utils/maria directory
+      file:
+        path: '~{{ username }}/utils/maria'
+        state: directory
+        mode: '0755'
+
+    - name: write docker-compose.yml for maria
+      template:
+        src: docker-compose.yml.j2
+        dest: '~{{ username }}/utils/maria/docker-compose.yml'
+        backup: yes
+        mode: 'u=rw,go=r'
+
+    - name: write the .env files
+      template:
+        src: .env.j2
+        dest: '~{{ username }}/utils/maria/.env.{{ item.name }}'
+        backup: yes
+        mode: 'u=rw,go=r'
+      with_items:
+        - "{{ databases.production }}"
+        - "{{ databases.staging }}"
+        - "{{ databases.develop }}"
+
+    - name: Set config to /etc/hosts
+      become_user: root
+      lineinfile:
+        path: /etc/hosts
+        line: '{{ item.ip }} maria_{{ item.name }}'
+      when: ansible_play_name != "dev" #In dev mode the server is running inside a Docker container so the /etc/hosts file can't be directly written to
+      with_items:
+        - "{{ databases.production }}"
+        - "{{ databases.staging }}"
+        - "{{ databases.develop }}"
+
+    - name: Set config to /etc/hosts
+      become_user: root
+      lineinfile:
+        path: /etc/hosts_extra
+        line: '{{ item.ip }} maria_{{ item.name }}'
+        create: yes
+      when: ansible_play_name == "dev" #Only to check if data is correct
+      with_items:
+        - "{{ databases.production }}"
+        - "{{ databases.staging }}"
+        - "{{ databases.develop }}"
+
+    - name: Run the maria container
+      docker_compose:
+        project_src: '~{{ username }}/utils/maria'
+
+    - name: Check user privileges
+      command: docker-compose exec {{ item.name }} mysql -uroot -v -e "SHOW GRANTS FOR {{ item.user }};"
+      args:
+        chdir: '~{{ username }}/utils/maria'
+      register: check_privileges
+      changed_when: false
+      ignore_errors: True
+      with_items:
+        - "{{ databases.production }}"
+        - "{{ databases.staging }}"
+        - "{{ databases.develop }}"
+
+#    - debug:
+#        msg:
+#         - "Production : {{ check_privileges.results[0].stdout_lines[7] }}"
+#         - "Staging : {{ check_privileges.results[1].stdout_lines[7] }}"
+#         - "Develop : {{ check_privileges.results[2].stdout_lines[7] }}"
+#        verbosity: 2
+#        ignore_errors: True
+#        when:
+#          check_privileges is defined and
+#          check_privileges is defined and
+#          check_privileges.results[0] is defined and
+#          check_privileges.results[0].stdout_lines[7] is defined and
+#          check_privileges.results[1].stdout_lines[7] is defined and
+#          check_privileges.results[2].stdout_lines[7] is defined
+
+    - name: Add user privileges
+      command: docker-compose exec {{ item.name }} mysql -uroot -v -e "GRANT ALL ON *.* TO '{{ item.user }}'@'%' IDENTIFIED BY '{{ item.user_password }}';"
+      # Depending on your maria version `mysql -uroot` needs to be set to `mariadb -uroot -ppassword` (the password from the vault)
+      args:
+        chdir: '~{{ username }}/utils/maria'
+      when:
+        check_privileges.results[item.key].stdout_lines[7] is not defined or
+        check_privileges.results[item.key].stdout_lines[7].find("GRANT ALL PRIVILEGES ON *.* TO ") == -1
+      with_items:
+        - "{{ databases.production }}"
+        - "{{ databases.staging }}"
+        - "{{ databases.develop }}"

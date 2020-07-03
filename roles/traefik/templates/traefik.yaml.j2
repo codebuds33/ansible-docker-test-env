@@ -1,0 +1,35 @@
+providers:
+  docker:
+    exposedByDefault: false
+    network: web
+  file:
+    filename: /dynamic_conf.yaml
+    watch: true
+
+entryPoints:
+  web:
+    address: ":80"
+    http:
+      redirections:
+        entryPoint:
+          to: websecure
+          scheme: https
+          permanent: true
+  websecure:
+    address: ":443"
+    http:
+      tls:
+        certResolver: letsencrypt
+
+certificatesResolvers:
+  letsencrypt:
+    acme:
+      email: "{{ traefik.letsencrypt.email }}"
+      storage: "/acme.json"
+      tlsChallenge: {}
+
+api:
+  insecure: false
+
+log:
+  level: INFO

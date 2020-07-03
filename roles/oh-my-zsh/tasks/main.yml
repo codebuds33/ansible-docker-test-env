@@ -1,0 +1,46 @@
+---
+- name: Oh-my-zsh block
+  become: true
+  become_user: '{{ username }}'
+  tags:
+    - oh-my-zsh
+  block:
+    - name: install dependencies
+      become_user: root
+      package:
+        name:
+          - git
+          - zsh
+          - ccze
+        state: present
+
+    - name: clone oh-my-zsh for user
+      tags:
+        - skip_ansible_lint
+      # core.autocrlf=input prevents https://github.com/robbyrussell/oh-my-zsh/issues/4402
+      command: 'git clone -c core.autocrlf=input --depth=1 https://github.com/robbyrussell/oh-my-zsh.git .oh-my-zsh'
+      args:
+        chdir: '~{{ username }}'
+        creates: '~{{ username }}/.oh-my-zsh'
+
+    - name: set permissions of oh-my-zsh for users
+      file:
+        path: '~{{ username }}/.oh-my-zsh'
+        # Prevent the cloned repository from having insecure permissions. Failing to do
+        # so causes compinit() calls to fail with "command not found: compdef" errors
+        # for users with insecure umasks (e.g., "002", allowing group writability).
+        mode: 'go-w'
+        recurse: true
+
+    - name: set default shell for users
+      become_user: root
+      user:
+        name: '{{ username }}'
+        shell: /bin/zsh
+
+    - name: write .zshrc for users
+      template:
+        src: zshrc.j2
+        dest: '~{{ username }}/.zshrc'
+        backup: yes
+        mode: 'u=rw,go=r'

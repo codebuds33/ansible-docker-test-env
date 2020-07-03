@@ -1,0 +1,14 @@
+---
+- hosts: dev
+
+  vars_files:
+#    - ./vault/develop.yml #Uncomment this to use the vault for not the default dev variables
+    - ./vars/vars.yml #This gets overriden by the group_vars dev.yml file
+
+  roles:
+    - oh-my-zsh
+    - docker
+    - traefik
+    - portainer
+    - maria
+    - test-docker

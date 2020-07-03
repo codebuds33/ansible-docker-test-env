@@ -1,0 +1,19 @@
+---
+- name: Test-docker block
+  become: true
+  become_user: '{{ username }}'
+  tags:
+    - test-docker
+  block:
+    - name: Run docker hello-world
+      become: true
+      become_user: '{{ username }}'
+      docker_container:
+        detach: false # Set to false to get the output
+        name: hello-world
+        image: hello-world
+      register: hello_world
+
+    - debug:
+        msg: "{{ hello_world.ansible_facts.docker_container.Output }}"
+        verbosity: 0

@@ -1,0 +1,80 @@
+---
+- name: Docker block
+  become: true
+  tags:
+    - docker
+  block:
+
+    - name: Install aptitude using apt
+      apt: name=aptitude state=latest update_cache=yes force_apt_get=yes
+
+    - name: Install required system packages
+      apt: name={{ item }} state=latest update_cache=yes
+      loop: [ 'apt-transport-https', 'ca-certificates', 'curl', 'software-properties-common', 'gnupg-agent', 'python3-pip', 'virtualenv', 'python3-setuptools']
+
+    - name: Add Docker GPG apt Key
+      apt_key:
+        url: https://download.docker.com/linux/debian/gpg
+        state: present
+
+    - name: Add Docker Repository
+      apt_repository:
+        repo: deb https://download.docker.com/linux/debian buster stable
+        state: present
+
+    - name: Update apt and install docker-ce docker-ce-cli containerd.io iptables aufs
+      apt: update_cache=yes name={{ item }} state=latest
+      loop: ['docker-ce', 'docker-ce-cli', 'containerd.io', 'iptables', 'aufs-dkms']
+
+    - name: Install docker-compose
+      get_url:
+        url: https://github.com/docker/compose/releases/download/1.26.1/docker-compose-Linux-x86_64
+        dest: /usr/local/bin/docker-compose
+        mode: 'u+x,g+x' # maybe a+x ?
+
+    - name: Install Docker SDK for python
+      pip:
+        name: "{{ item }}"
+      loop: ['docker', 'docker-compose']
+
+    - name: create /etc/docker config directory
+      file:
+        path: /etc/docker
+        state: directory
+        mode: '0755'
+
+    # If this volume is shared with the host it will prevent docker to not be able to write to it
+    - name: set docker storage driver
+      copy:
+        dest: /etc/docker/daemon.json
+        content: |
+          {
+            "storage-driver": "aufs",
+            "graph": "/home/exploit/docker/storage"
+          }
+
+    - name: Set nftables to iptables
+      alternatives:
+        name: iptables
+        path: /usr/sbin/iptables-legacy
+
+    - name: Set nftables to iptables (ipv6)
+      alternatives:
+        name: ip6tables
+        path: /usr/sbin/ip6tables-legacy
+
+    - name: Ensure group "docker" exists
+      group:
+        name: docker
+        state: present
+
+    - name: Set exploits user groups and shell
+      user:
+        name: "{{ username }}"
+        groups: docker
+        append: yes
+
+    - name: Start Docker service
+      service:
+        name: docker
+        state: started

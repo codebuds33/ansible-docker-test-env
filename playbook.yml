@@ -7,8 +7,10 @@
 
   roles:
     - oh-my-zsh
+    - ssh-banner #Will not display in dev as the system can not be resterted as it is not booted with systemd
     - docker
     - traefik
     - portainer
     - maria
     - test-docker
+    - reboot #Skipped on dev

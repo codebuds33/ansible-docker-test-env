@@ -1,0 +1,9 @@
+---
+- name: Reboot system block
+  become: true
+  tags:
+    - reboot
+  block:
+    - name: Reboot
+      reboot:
+      when: ansible_play_name != "dev" #In dev from within the docker container reboot does not work as the System has not been booted with systemd

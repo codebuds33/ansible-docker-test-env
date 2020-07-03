@@ -59,5 +59,6 @@
         name: web
 
     - name: Run the traefik container
+      become_user: root
       docker_compose:
         project_src: '~{{ username }}/utils/traefik'
